@@ -7,6 +7,7 @@ use esp_idf_hal::i2c;
 use esp_idf_hal::peripherals::Peripherals;
 use esp_idf_hal::prelude::*;
 
+use embedded_graphics::image::{Image, ImageRaw, ImageRawLE};
 use embedded_graphics::mono_font::{ascii::FONT_10X20, MonoTextStyle};
 use embedded_graphics::pixelcolor::*;
 use embedded_graphics::prelude::*;
@@ -102,7 +103,7 @@ fn main() {
 #[allow(dead_code)]
 fn led_draw<D>(display: &mut D) -> Result<(), D::Error>
 where
-    D: DrawTarget + Dimensions,
+    D: DrawTarget<Color = embedded_graphics::pixelcolor::Rgb565> + Dimensions,
     D::Color: From<Rgb565>,
 {
     display.clear(Rgb565::WHITE.into())?;
@@ -110,12 +111,17 @@ where
     Rectangle::new(display.bounding_box().top_left, display.bounding_box().size)
         .into_styled(
             PrimitiveStyleBuilder::new()
-                .fill_color(Rgb565::BLUE.into())
+                .fill_color(Rgb565::BLACK.into())
                 .stroke_color(Rgb565::YELLOW.into())
                 .stroke_width(1)
                 .build(),
         )
         .draw(display)?;
+
+    let raw_image: ImageRawLE<Rgb565> = ImageRaw::new(include_bytes!("../assets/ferris.raw"), 86);
+    let ferris = Image::new(&raw_image, Point::new(2, 2));
+
+    ferris.draw(display)?;
 
     Text::new(
         "Hello Rust!",
